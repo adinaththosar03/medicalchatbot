@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediAssist AI - Intelligent Health Companion</title>
+    <style>
+        /* --- Google Font Import --- */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        /* --- Global Styles & Variables --- */
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #f4f7f9;
+            --text-dark: #333;
+            --text-light: #666;
+            --bot-message-bg: #e9f5ff;
+            --user-message-bg: #f1f1f1;
+            --accent-color: #28a745;
+            --danger-color: #dc3545;
+            --border-color: #e0e0e0;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--secondary-color);
+            color: var(--text-dark);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+        
+        /* --- Utility Classes --- */
+        .hidden {
+            display: none !important;
+        }
+        
+        /* --- Keyframe Animations --- */
+        @keyframes pulsate {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(0, 123, 255, 0.2); }
+            50% { transform: scale(1.1); box-shadow: 0 0 25px rgba(0, 123, 255, 0.4); }
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        /* --- Startup Screen --- */
+        .startup-screen {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .loader-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease-out;
+        }
+        
+        .pulsating-logo {
+            width: 80px;
+            height: 80px;
+            background-color: var(--primary-color);
+            border-radius: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-weight: 600;
+            font-size: 50px;
+            animation: pulsate 2s infinite ease-in-out;
+        }
+        .pulsating-logo::after { content: '+'; }
+
+        .welcome-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .welcome-container .logo {
+             width: 60px; height: 60px; background-color: var(--primary-color); border-radius: 12px; margin-bottom: 20px;
+             display: flex; justify-content: center; align-items: center; color: #fff; font-weight: 600; font-size: 30px;
+        }
+        .welcome-container h1 { font-size: 28px; color: var(--text-dark); margin-bottom: 10px; }
+        .welcome-container p { font-size: 16px; color: var(--text-light); max-width: 400px; margin-bottom: 30px; }
+        
+        .get-started-btn {
+            background-color: var(--primary-color); color: white; border: none; padding: 15px 40px; font-size: 18px;
+            font-weight: 500; border-radius: 10px; cursor: pointer; transition: background-color 0.2s, transform 0.2s;
+        }
+        .get-started-btn:hover { background-color: #0069d9; transform: translateY(-2px); }
+
+        /* --- Main Application Container --- */
+        .app-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            position: relative;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @media (min-width: 1024px) {
+            body { display: flex; justify-content: center; align-items: center; padding: 20px; }
+            .app-container { max-width: 1200px; height: 90vh; max-height: 800px; border-radius: 20px; box-shadow: var(--shadow); overflow: hidden; }
+        }
+
+        /* --- Sidebar & Main Content (All previous styles are here) --- */
+        .sidebar { width: 280px; background-color: #ffffff; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; padding: 20px; flex-shrink: 0; transition: transform 0.3s ease-in-out; z-index: 1000; }
+        .sidebar-header { display: flex; align-items: center; margin-bottom: 30px; }
+        .sidebar-header .logo { width: 40px; height: 40px; background-color: var(--primary-color); border-radius: 10px; margin-right: 12px; display: flex; justify-content: center; align-items: center; color: #fff; font-weight: 600; font-size: 20px; }
+        .sidebar-header h1 { font-size: 22px; font-weight: 600; color: var(--primary-color); }
+        .sidebar-menu button { display: flex; align-items: center; width: 100%; padding: 12px 15px; border-radius: 8px; border: none; background: none; text-align: left; font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 500; color: var(--text-dark); cursor: pointer; transition: background-color 0.2s, color 0.2s; margin-bottom: 10px; }
+        .sidebar-menu button.active, .sidebar-menu button:hover { background-color: var(--bot-message-bg); color: var(--primary-color); }
+        .sidebar-menu button svg { margin-right: 12px; width: 20px; height: 20px; stroke-width: 2; }
+        .chat-history { margin-top: 20px; flex-grow: 1; overflow-y: auto; }
+        .chat-history h3 { font-size: 14px; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; }
+        .chat-history a { display: block; text-decoration: none; color: var(--text-dark); padding: 10px 15px; border-radius: 8px; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; transition: background-color 0.2s; }
+        .chat-history a:hover { background-color: #f0f0f0; }
+        .user-profile { margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 20px; }
+        .user-profile p { font-weight: 500; text-align: center; }
+        .main-content { flex-grow: 1; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .view-pane { flex-grow: 1; overflow-y: auto; display: none; }
+        .view-pane.active { display: flex; flex-direction: column; }
+        .chat-window { display: flex; flex-direction: column; padding: 30px; gap: 20px; }
+        .message { max-width: 80%; padding: 12px 18px; border-radius: 18px; line-height: 1.5; font-size: 15px; }
+        .message.user { background-color: var(--user-message-bg); align-self: flex-end; border-bottom-right-radius: 5px; color: var(--text-dark); }
+        .message.bot { background-color: var(--bot-message-bg); align-self: flex-start; border-bottom-left-radius: 5px; color: var(--text-dark); }
+        .message.bot.critical { background-color: #fffbe6; border: 1px solid #ffe58f; }
+        .message.bot.critical p { color: #d46b08; font-weight: 500; }
+        .message .sources { margin-top: 15px; font-size: 12px; border-top: 1px solid #cce7ff; padding-top: 10px; }
+        .sources strong { color: var(--primary-color); }
+        .sources ul { list-style-position: inside; padding-left: 5px; margin-top: 5px; }
+        .sources li { color: var(--text-light); }
+        .upload-view-content { display: flex; justify-content: center; align-items: center; flex-direction: column; width: 100%; height: 100%; padding: 40px; }
+        .upload-box { display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; max-width: 500px; height: 300px; border: 3px dashed var(--border-color); border-radius: 20px; background-color: var(--secondary-color); text-align: center; transition: background-color 0.3s, border-color 0.3s; }
+        .upload-box:hover { background-color: #e9f5ff; border-color: var(--primary-color); }
+        .upload-box .upload-icon svg { width: 60px; height: 60px; color: var(--primary-color); margin-bottom: 20px; }
+        .upload-box h2 { font-size: 20px; color: var(--text-dark); margin-bottom: 10px; }
+        .upload-box p { color: var(--text-light); margin-bottom: 25px; }
+        .upload-btn { background-color: var(--primary-color); color: white; border: none; padding: 12px 30px; font-size: 16px; font-weight: 500; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; }
+        .upload-btn:hover { background-color: #0069d9; }
+        .report-analysis-content { padding: 30px; }
+        .report-header { margin-bottom: 20px; }
+        .report-header h2 { font-size: 24px; color: var(--primary-color); }
+        .report-header p { color: var(--text-light); }
+        .summary-card { background: var(--bot-message-bg); padding: 20px; border-radius: 12px; margin-bottom: 25px; border-left: 5px solid var(--accent-color); }
+        .summary-card h3 { color: var(--accent-color); margin-bottom: 10px; }
+        .results-table { width: 100%; border-collapse: collapse; }
+        .results-table th, .results-table td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .results-table th { background-color: var(--secondary-color); font-weight: 600; }
+        .abnormal { color: var(--danger-color); font-weight: 600; }
+        .abnormal-row { background-color: #fff5f5; }
+        .chat-input-area { padding: 15px 20px; border-top: 1px solid var(--border-color); background: #fff; }
+        .input-wrapper { display: flex; align-items: center; background-color: var(--secondary-color); border-radius: 12px; padding: 5px; }
+        .chat-input-area input { flex-grow: 1; border: none; padding: 12px 15px; font-size: 16px; background: none; outline: none; color: var(--text-dark); }
+        .chat-input-area button { border: none; background: none; padding: 10px; cursor: pointer; border-radius: 8px; transition: background-color 0.2s; }
+        .chat-input-area button:hover { background-color: #dbeafe; }
+        .chat-input-area button.send-btn { background-color: var(--primary-color); margin-left: 5px; }
+        .chat-input-area button.send-btn:hover { background-color: #0069d9; }
+        .chat-input-area svg { width: 24px; height: 24px; color: var(--primary-color); }
+        .chat-input-area .send-btn svg { color: #fff; }
+        .disclaimer { text-align: center; font-size: 11px; padding: 10px 20px; color: var(--text-light); background: #fdfdfd; }
+        .mobile-header, .menu-toggle { display: none; }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
+        .overlay.active { display: block; }
+        @media (max-width: 768px) {
+            .app-container { flex-direction: column; }
+            .sidebar { position: absolute; top: 0; left: 0; height: 100%; transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); box-shadow: 10px 0 20px rgba(0,0,0,0.1); }
+            .mobile-header { display: flex; align-items: center; justify-content: center; padding: 15px; position: relative; border-bottom: 1px solid var(--border-color); background-color: #fff; flex-shrink: 0; }
+            .mobile-header h2 { font-size: 18px; font-weight: 600; color: var(--primary-color); }
+            .menu-toggle { display: block; position: absolute; left: 15px; background: none; border: none; padding: 5px; cursor: pointer; }
+            .menu-toggle svg { width: 24px; height: 24px; color: var(--primary-color); }
+            .main-content { width: 100%; }
+            .report-header { display: none; }
+            .chat-window, .report-analysis-content, .upload-view-content { padding: 20px 15px; }
+            .message { font-size: 14px; }
+            .results-table { font-size: 13px; }
+            .results-table th, .results-table td { padding: 10px 8px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="startup-screen" id="startup-screen">
+        <div class="loader-container" id="loader-container">
+            <div class="pulsating-logo"></div>
+        </div>
+        <div class="welcome-container hidden" id="welcome-container">
+            <div class="logo">M</div>
+            <h1>Welcome to MediAssist</h1>
+            <p>Your intelligent health companion for understanding medical queries and reports.</p>
+            <button class="get-started-btn" id="get-started-btn">Get Started</button>
+        </div>
+    </div>
+
+    <div class="app-container hidden" id="app-container">
+        <div class="overlay" id="overlay"></div>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header"><div class="logo">M</div><h1>MediAssist</h1></div>
+            <div class="sidebar-menu">
+                <button class="active" id="chat-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>Medical Q&A</button>
+                <button id="report-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>Explain Medical Report</button>
+            </div>
+            <div class="chat-history"><h3>Conversation History</h3><a href="#">Fever and headache causes...</a><a href="#">Analysis: Aug 28, 2025 Blood Test</a><a href="#">Is Paracetamol safe?</a><a href="#">Blood Pressure Ranges...</a></div>
+            <div class="user-profile"><p>Welcome, Investor!</p></div>
+        </aside>
+
+        <main class="main-content">
+            <div class="view-pane active" id="chat-view">
+                <div class="mobile-header">
+                    <button class="menu-toggle"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+                    <h2>Medical Q&A</h2>
+                </div>
+                <div class="chat-window">
+                    <div class="message bot">
+                        Hello! I am MediAssist, your AI health companion. Today is Sunday, August 31, 2025. How can I help you today?
+                    </div>
+                    <div class="message user">What are the common symptoms of iron deficiency anemia?</div>
+                    <div class="message bot"><p>Iron deficiency anemia is a common condition where the blood lacks adequate healthy red blood cells. Common symptoms include:</p><ul><li><strong>Fatigue or extreme tiredness:</strong> This is the most common symptom.</li><li><strong>Shortness of breath,</strong> especially with exertion.</li><li><strong>Pale skin,</strong> particularly noticeable on the face, nails, and lining of the eyelids.</li><li><strong>Headaches and dizziness.</strong></li><li><strong>Cold hands and feet.</strong></li></ul><div class="sources"><strong>Sources:</strong><ul><li>World Health Organization (WHO) Database - Anemia Guidelines</li><li>National Institutes of Health (NIH) - MedlinePlus</li></ul></div></div>
+                    <div class="message user">I am having severe chest pain and difficulty breathing.</div>
+                    <div class="message bot critical"><p><strong>This seems critical. Please consult a doctor or visit the nearest emergency room immediately.</strong><br>This tool is for informational purposes only and cannot handle medical emergencies.</p></div>
+                </div>
+            </div>
+            <div class="view-pane" id="upload-view">
+                <div class="mobile-header">
+                    <button class="menu-toggle"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+                    <h2>Upload Report</h2>
+                </div>
+                <div class="upload-view-content"><div class="upload-box"><div class="upload-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg></div><h2>Upload Your Medical Report</h2><p>Drag & drop a PDF or image file here</p><p>or</p><button class="upload-btn" onclick="showView('analysis-view')">Click to Upload</button></div></div>
+            </div>
+            <div class="view-pane" id="analysis-view">
+                 <div class="mobile-header">
+                    <button class="menu-toggle"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+                    <h2>Report Analysis</h2>
+                </div>
+                <div class="report-analysis-content"><div class="report-header"><h2>Blood Test Report Analysis</h2><p>Patient: John Doe | Date: Aug 28, 2025</p></div><div class="summary-card"><h3>Analysis Summary</h3><p>This report indicates that your Hemoglobin and Hematocrit levels are below the standard range, which may suggest anemia. Your white blood cell count is normal. Please consult with your doctor to discuss these results further.</p></div><table class="results-table"><thead><tr><th>Test</th><th>Your Value</th><th>Standard Range</th><th>Comment</th></tr></thead><tbody><tr class="abnormal-row"><td>Hemoglobin (HGB)</td><td class="abnormal">9.5 g/dL</td><td>13.5 - 17.5 g/dL</td><td class="abnormal">Below Normal</td></tr><tr><td>White Blood Cell (WBC)</td><td>7,500 /mcL</td><td>4,500 - 11,000 /mcL</td><td>Normal</td></tr><tr class="abnormal-row"><td>Hematocrit</td><td class="abnormal">32%</td><td>41% - 50%</td><td class="abnormal">Below Normal</td></tr><tr><td>Platelets</td><td>250,000 /mcL</td><td>150,000 - 450,000 /mcL</td><td>Normal</td></tr></tbody></table></div>
+            </div>
+            <div class="chat-input-area">
+                 <div class="input-wrapper"><input type="text" placeholder="Ask a medical question..."><button title="Attach File"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg></button><button class="send-btn" title="Send Message"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></button></div>
+                 <div class="disclaimer">Disclaimer: This is an AI assistant and not a substitute for professional medical advice. Always consult a doctor for health concerns.</div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- App View & Sidebar Logic ---
+        const viewPanes = document.querySelectorAll('.view-pane');
+        const sidebar = document.getElementById('sidebar');
+        const menuToggles = document.querySelectorAll('.menu-toggle');
+        const overlay = document.getElementById('overlay');
+        const chatBtn = document.getElementById('chat-btn');
+        const reportBtn = document.getElementById('report-btn');
+
+        function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('active'); }
+        function showView(viewId) {
+            viewPanes.forEach(pane => pane.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            
+            chatBtn.classList.remove('active');
+            reportBtn.classList.remove('active');
+            if (viewId === 'chat-view') chatBtn.classList.add('active');
+            else if (viewId === 'upload-view' || viewId === 'analysis-view') reportBtn.classList.add('active');
+            
+            if (window.innerWidth <= 768) closeSidebar();
+        }
+        
+        menuToggles.forEach(toggle => { toggle.addEventListener('click', () => { sidebar.classList.toggle('open'); overlay.classList.toggle('active'); }); });
+        overlay.addEventListener('click', closeSidebar);
+        chatBtn.addEventListener('click', () => showView('chat-view'));
+        reportBtn.addEventListener('click', () => showView('upload-view'));
+
+        // --- Startup Sequence Logic ---
+        const startupScreen = document.getElementById('startup-screen');
+        const loaderContainer = document.getElementById('loader-container');
+        const welcomeContainer = document.getElementById('welcome-container');
+        const getStartedBtn = document.getElementById('get-started-btn');
+        const appContainer = document.getElementById('app-container');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                loaderContainer.style.opacity = '0';
+                setTimeout(() => {
+                    loaderContainer.classList.add('hidden');
+                    welcomeContainer.classList.remove('hidden');
+                }, 500);
+            }, 2500);
+
+            getStartedBtn.addEventListener('click', () => {
+                startupScreen.style.opacity = '0';
+                setTimeout(() => {
+                    startupScreen.classList.add('hidden');
+                    appContainer.classList.remove('hidden');
+                    showView('chat-view');
+                }, 500);
+            });
+        });
+    </script>
+</body>
+</html>
